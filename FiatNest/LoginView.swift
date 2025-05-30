@@ -12,9 +12,17 @@ struct LoginView: View {
         VStack(spacing: 20) {
             Spacer()
             
-            Text("FiatNest")
-                .font(.system(size: 40, weight: .bold))
-                .foregroundColor(.blue)
+            if let path = Bundle.main.path(forResource: "logo", ofType: "png"),
+               let uiImage = UIImage(contentsOfFile: path) {
+                Image(uiImage: uiImage)
+                    .resizable()
+                    .scaledToFit()
+                    .frame(height: 250)
+            } else {
+                Text("FiatNest")
+                    .font(.system(size: 40, weight: .bold))
+                    .foregroundColor(.blue)
+            }
             
             if let publicKey = publicKey {
                 Text("Wallet Created!")
