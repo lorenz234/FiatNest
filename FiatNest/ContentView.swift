@@ -13,55 +13,50 @@ struct ContentView: View {
     @State private var isAuthenticated = false
     
     init() {
-        UITabBar.appearance().backgroundColor = .systemGray6
+        // Configure tab bar appearance
+        let tabBarAppearance = UITabBarAppearance()
+        tabBarAppearance.configureWithOpaqueBackground()
+        tabBarAppearance.backgroundColor = .systemGray6
+        
+        UITabBar.appearance().standardAppearance = tabBarAppearance
+        UITabBar.appearance().scrollEdgeAppearance = tabBarAppearance
     }
     
     var body: some View {
         if isAuthenticated {
             TabView(selection: $selectedTab) {
                 // Accounts Tab
-                VStack {
-                    Spacer()
-                    Text("€\(balance, specifier: "%.2f")")
-                        .font(.system(size: 48, weight: .medium))
-                        .padding(.bottom, 40)
-                    Spacer()
-                }
-                .tabItem {
-                    Image(systemName: "banknote")
-                    Text("Accounts")
-                }
-                .tag(0)
+                AccountsView(balance: balance)
+                    .tabItem {
+                        Image(systemName: "banknote")
+                        Text("Accounts")
+                    }
+                    .tag(0)
                 
                 // Card Tab
-                VStack {
-                    Text("Card")
-                }
-                .tabItem {
-                    Image(systemName: "creditcard")
-                    Text("Card")
-                }
-                .tag(1)
+                CardView()
+                    .edgesIgnoringSafeArea(.horizontal)
+                    .tabItem {
+                        Image(systemName: "creditcard")
+                        Text("Card")
+                    }
+                    .tag(1)
                 
                 // Send Tab
-                VStack {
-                    Text("Send")
-                }
-                .tabItem {
-                    Image(systemName: "paperplane")
-                    Text("Send")
-                }
-                .tag(2)
+                SendView()
+                    .tabItem {
+                        Image(systemName: "paperplane")
+                        Text("Send")
+                    }
+                    .tag(2)
                 
                 // Invest Tab
-                VStack {
-                    Text("Invest")
-                }
-                .tabItem {
-                    Image(systemName: "chart.line.uptrend.xyaxis")
-                    Text("Invest")
-                }
-                .tag(3)
+                InvestView()
+                    .tabItem {
+                        Image(systemName: "chart.line.uptrend.xyaxis")
+                        Text("Invest")
+                    }
+                    .tag(3)
             }
             .tint(.blue)
         } else {
