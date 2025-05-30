@@ -1,0 +1,140 @@
+import Foundation
+
+// MARK: - Response Models
+struct BlockscoutResponse: Codable {
+    let items: [TokenTransfer]
+}
+
+struct TokenTransfer: Codable {
+    let timestamp: String
+    let total: TokenAmount
+    let method: String
+    let to: AddressInfo
+}
+
+struct TokenAmount: Codable {
+    let decimals: String
+    let value: String
+}
+
+struct AddressInfo: Codable {
+    let hash: String
+    let name: String?
+    let implementations: [Implementation]?
+}
+
+struct Implementation: Codable {
+    let name: String
+}
+
+// MARK: - Formatted Transaction
+struct FormattedTransaction: Identifiable {
+    let id = UUID()
+    let merchantName: String
+    let date: String
+    let amount: Double
+    let icon: String
+    
+    // List of possible icons for random assignment
+    static let possibleIcons = [
+        // Finance & Blockchain
+        "creditcard.fill",
+        "building.columns.fill",
+        "building.2.fill",
+        "network",
+        "link",
+        "cube.box.fill",
+        
+        // Shopping & Retail
+        "cart.fill",
+        "bag.fill",
+        "gift.fill",
+        "tshirt.fill",
+        
+        // Food & Dining
+        "cup.and.saucer.fill",
+        "fork.knife",
+        "takeoutbag.and.cup.and.straw.fill",
+        "wineglass.fill",
+        
+        // Transportation
+        "car.fill",
+        "bus.fill",
+        "airplane",
+        "fuelpump.fill",
+        
+        // Entertainment
+        "play.tv.fill",
+        "gamecontroller.fill",
+        "music.note",
+        "ticket.fill",
+        
+        // Services
+        "cross.fill",
+        "house.fill",
+        "scissors",
+        "phone.fill",
+        
+        // Utilities
+        "bolt.fill",
+        "wifi",
+        "drop.fill",
+        "flame.fill"
+    ]
+}
+
+class BlockscoutService {
+    static let shared = BlockscoutService()
+    
+    private let baseURL = "https://gnosis.blockscout.com/api/v2"
+    private let walletAddress = "0x55809E0CDF350A5F7E6ed163D7C596170256dFa0"
+    private let tokenAddress = "0x420CA0f9B9b604cE0fd9C18EF134C705e5Fa3430"
+    
+    func fetchTransactions() async throws -> [FormattedTransaction] {
+        let urlString = "\(baseURL)/addresses/\(walletAddress)/token-transfers?type=ERC-20&filter=from&token=\(tokenAddress)"
+        
+        guard let url = URL(string: urlString) else {
+            throw URLError(.badURL)
+        }
+        
+        var request = URLRequest(url: url)
+        request.setValue("application/json", forHTTPHeaderField: "accept")
+        
+        let (data, _) = try await URLSession.shared.data(for: request)
+        let response = try JSONDecoder().decode(BlockscoutResponse.self, from: data)
+        
+        return formatTransactions(response.items)
+    }
+    
+    private func formatTransactions(_ transfers: [TokenTransfer]) -> [FormattedTransaction] {
+        return transfers.map { transfer in
+            // Convert value and decimals to Double
+            let value = Double(transfer.total.value) ?? 0
+            let decimals = Double(transfer.total.decimals) ?? 18
+            let amount = value / pow(10, decimals)
+            
+            // Format date
+            let dateFormatter = ISO8601DateFormatter()
+            let date = dateFormatter.date(from: transfer.timestamp) ?? Date()
+            let displayFormatter = DateFormatter()
+            displayFormatter.dateStyle = .medium
+            displayFormatter.timeStyle = .short
+            let displayDate = displayFormatter.string(from: date)
+            
+            // Get merchant name from API response
+            let merchantName = transfer.to.implementations?.first?.name ?? 
+                             transfer.to.name ?? 
+                             "Unknown Contract"
+            
+            // Random icon
+            let icon = FormattedTransaction.possibleIcons.randomElement() ?? "creditcard.fill"
+            
+            return FormattedTransaction(
+                merchantName: merchantName,
+                date: displayDate,
+                amount: amount,
+                icon: icon
+            )
+        }
+    }
+}

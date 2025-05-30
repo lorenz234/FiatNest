@@ -1,6 +1,8 @@
 import SwiftUI
 
 struct CreditCardView: View {
+    let balance: Double
+    
     var body: some View {
         ZStack {
             // Card background
@@ -14,11 +16,20 @@ struct CreditCardView: View {
                 .shadow(color: .gray.opacity(0.4), radius: 8, x: 0, y: 4)
             
             VStack(alignment: .leading) {
-                // Chip image
-                Image(systemName: "creditcard.and.123")
-                    .font(.system(size: 32))
-                    .foregroundColor(.white.opacity(0.85))
-                    .padding(.bottom, 30)
+                HStack {
+                    // Balance in top left
+                    Text("€\(balance, specifier: "%.2f")")
+                        .font(.system(size: 24, weight: .medium))
+                        .foregroundColor(.white)
+                    
+                    Spacer()
+                    
+                    // Chip image
+                    Image(systemName: "creditcard.and.123")
+                        .font(.system(size: 32))
+                        .foregroundColor(.white.opacity(0.85))
+                }
+                .padding(.bottom, 30)
                 
                 // Card number
                 Text("•••• •••• •••• 4242")
@@ -261,40 +272,143 @@ struct ExpenseRow: View {
     }
 }
 
+struct AddMoneyToCardView: View {
+    @Environment(\.dismiss) private var dismiss
+    @Binding var cardBalance: Double
+    @Binding var savingsBalance: Double
+    @State private var amount: String = ""
+    @State private var showingError = false
+    
+    var body: some View {
+        NavigationView {
+            VStack(spacing: 24) {
+                // Source account info
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("From Savings Account")
+                        .font(.headline)
+                    Text("Available Balance: €\(savingsBalance, specifier: "%.2f")")
+                        .font(.subheadline)
+                        .foregroundColor(.gray)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding()
+                .background(Color.gray.opacity(0.05))
+                .cornerRadius(12)
+                
+                // Destination card info
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("To Card")
+                        .font(.headline)
+                    Text("Current Card Balance: €\(cardBalance, specifier: "%.2f")")
+                        .font(.subheadline)
+                        .foregroundColor(.gray)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding()
+                .background(Color.gray.opacity(0.05))
+                .cornerRadius(12)
+                
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Transfer Amount")
+                        .font(.headline)
+                    TextField("Enter amount", text: $amount)
+                        .keyboardType(.decimalPad)
+                        .textFieldStyle(RoundedBorderTextFieldStyle())
+                        .onChange(of: amount) { oldValue, newValue in
+                            let filtered = newValue.filter { "0123456789.".contains($0) }
+                            if filtered != newValue {
+                                amount = filtered
+                            }
+                        }
+                }
+                .padding()
+                
+                Button(action: {
+                    if let amountDouble = Double(amount),
+                       amountDouble > 0,
+                       amountDouble <= savingsBalance {
+                        cardBalance += amountDouble
+                        savingsBalance -= amountDouble  // Deduct from savings
+                        dismiss()
+                    } else {
+                        showingError = true
+                    }
+                }) {
+                    Text("Transfer from Savings")
+                        .font(.headline)
+                        .foregroundColor(.white)
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .background(Color.blue)
+                        .cornerRadius(12)
+                }
+                .padding()
+                .alert("Invalid Amount", isPresented: $showingError) {
+                    Button("OK", role: .cancel) {}
+                } message: {
+                    Text("Please enter a valid amount that doesn't exceed your savings balance.")
+                }
+                
+                Spacer()
+            }
+            .padding()
+            .navigationTitle("Transfer to Card")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button("Cancel") {
+                        dismiss()
+                    }
+                }
+            }
+        }
+    }
+}
+
+class CardViewModel: ObservableObject {
+    @Published var transactions: [FormattedTransaction] = []
+    
+    func loadTransactions() {
+        Task {
+            do {
+                let fetchedTransactions = try await BlockscoutService.shared.fetchTransactions()
+                DispatchQueue.main.async {
+                    self.transactions = fetchedTransactions
+                }
+            } catch {
+                print("Error fetching transactions: \(error)")
+            }
+        }
+    }
+}
+
 struct CardView: View {
+    @StateObject private var viewModel = CardViewModel()
     @State private var currentPage = 1
     @GestureState private var dragOffset: CGFloat = 0
-    
-    // Sample expenses data
-    let expenses = [
-        (merchantName: "Starbucks", date: "Today, 10:30 AM", amount: 4.50, icon: "cup.and.saucer.fill"),
-        (merchantName: "Amazon", date: "Yesterday", amount: 29.99, icon: "cart.fill"),
-        (merchantName: "Netflix", date: "May 28", amount: 17.99, icon: "play.tv.fill")
-    ]
+    @State private var cardBalance: Double = 150.0
+    @Binding var savingsBalance: Double
+    @State private var showingAddMoney = false
     
     var body: some View {
         GeometryReader { geometry in
             ZStack(alignment: .bottom) {
                 Color.gray.opacity(0.05).ignoresSafeArea()
                 
-                // Scrolling content
                 ScrollView {
                     ZStack {
-                        // Horizontal sliding views
                         HStack(spacing: 0) {
-                            // Add Card View
                             AddCardView()
                                 .frame(width: geometry.size.width)
                             
-                            // Main Card View
                             VStack(spacing: 20) {
-                                CreditCardView()
+                                CreditCardView(balance: cardBalance)
                                     .padding(.top)
                                 
                                 // Action Buttons
                                 HStack(spacing: 30) {
-                                    CardActionButton(icon: "doc.text.fill", title: "Details") {
-                                        // Show details action
+                                    CardActionButton(icon: "plus.circle.fill", title: "Add Money") {
+                                        showingAddMoney = true
                                     }
                                     
                                     CardActionButton(icon: "snowflake", title: "Freeze") {
@@ -315,16 +429,16 @@ struct CardView: View {
                                         .padding(.horizontal)
                                     
                                     VStack(spacing: 0) {
-                                        ForEach(expenses, id: \.merchantName) { expense in
+                                        ForEach(viewModel.transactions) { transaction in
                                             ExpenseRow(
-                                                merchantName: expense.merchantName,
-                                                date: expense.date,
-                                                amount: expense.amount,
-                                                icon: expense.icon
+                                                merchantName: transaction.merchantName,
+                                                date: transaction.date,
+                                                amount: transaction.amount,
+                                                icon: transaction.icon
                                             )
                                             .padding(.horizontal)
                                             
-                                            if expense.merchantName != expenses.last?.merchantName {
+                                            if transaction.id != viewModel.transactions.last?.id {
                                                 Divider()
                                                     .padding(.horizontal)
                                             }
@@ -344,6 +458,12 @@ struct CardView: View {
                     }
                 }
             }
+            .sheet(isPresented: $showingAddMoney) {
+                AddMoneyToCardView(
+                    cardBalance: $cardBalance,
+                    savingsBalance: $savingsBalance
+                )
+            }
             .gesture(
                 DragGesture()
                     .updating($dragOffset) { value, state, _ in
@@ -352,14 +472,17 @@ struct CardView: View {
                     .onEnded { value in
                         let threshold = geometry.size.width * 0.25
                         if value.translation.width > threshold {
-                            currentPage = 0 // Swipe right to Add Card
+                            currentPage = 0
                         } else if value.translation.width < -threshold {
-                            currentPage = 1 // Swipe left to Main Card
+                            currentPage = 1
                         }
                     }
             )
             .animation(.interactiveSpring(), value: dragOffset)
             .animation(.interactiveSpring(), value: currentPage)
+            .onAppear {
+                viewModel.loadTransactions()
+            }
         }
     }
 } 
