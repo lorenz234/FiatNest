@@ -261,27 +261,6 @@ struct ExpenseRow: View {
     }
 }
 
-struct PageIndicatorView: View {
-    let currentPage: Int
-    
-    var body: some View {
-        HStack(spacing: 8) {
-            ForEach(0...1, id: \.self) { index in
-                Circle()
-                    .fill(currentPage == index ? Color.blue : Color.gray.opacity(0.3))
-                    .frame(width: 8, height: 8)
-                    .animation(.easeInOut, value: currentPage)
-            }
-        }
-        .padding(8)
-        .background(
-            Capsule()
-                .fill(.white)
-                .shadow(color: .black.opacity(0.1), radius: 3, x: 0, y: 2)
-        )
-    }
-}
-
 struct CardView: View {
     @State private var currentPage = 1
     @GestureState private var dragOffset: CGFloat = 0
@@ -295,101 +274,92 @@ struct CardView: View {
     
     var body: some View {
         GeometryReader { geometry in
-            ZStack {
-                HStack(spacing: 0) {
-                    // Add Card View
-                    AddCardView()
-                        .frame(width: geometry.size.width)
-                    
-                    // Main Card View
-                    ScrollView {
-                        VStack(spacing: 20) {
-                            CreditCardView()
-                                .padding(.top)
+            ZStack(alignment: .bottom) {
+                Color.gray.opacity(0.05).ignoresSafeArea()
+                
+                // Scrolling content
+                ScrollView {
+                    ZStack {
+                        // Horizontal sliding views
+                        HStack(spacing: 0) {
+                            // Add Card View
+                            AddCardView()
+                                .frame(width: geometry.size.width)
                             
-                            // Action Buttons
-                            HStack(spacing: 30) {
-                                CardActionButton(icon: "doc.text.fill", title: "Details") {
-                                    // Show details action
-                                }
+                            // Main Card View
+                            VStack(spacing: 20) {
+                                CreditCardView()
+                                    .padding(.top)
                                 
-                                CardActionButton(icon: "snowflake", title: "Freeze") {
-                                    // Freeze card action
-                                }
-                                
-                                CardActionButton(icon: "gearshape.fill", title: "Settings") {
-                                    // Settings action
-                                }
-                            }
-                            .padding(.vertical)
-                            
-                            // Expenses section
-                            VStack(alignment: .leading, spacing: 16) {
-                                Text("Recent Transactions")
-                                    .font(.title2)
-                                    .fontWeight(.bold)
-                                    .padding(.horizontal)
-                                
-                                VStack(spacing: 0) {
-                                    ForEach(expenses, id: \.merchantName) { expense in
-                                        ExpenseRow(
-                                            merchantName: expense.merchantName,
-                                            date: expense.date,
-                                            amount: expense.amount,
-                                            icon: expense.icon
-                                        )
-                                        .padding(.horizontal)
-                                        
-                                        if expense.merchantName != expenses.last?.merchantName {
-                                            Divider()
-                                                .padding(.horizontal)
-                                        }
+                                // Action Buttons
+                                HStack(spacing: 30) {
+                                    CardActionButton(icon: "doc.text.fill", title: "Details") {
+                                        // Show details action
+                                    }
+                                    
+                                    CardActionButton(icon: "snowflake", title: "Freeze") {
+                                        // Freeze card action
+                                    }
+                                    
+                                    CardActionButton(icon: "gearshape.fill", title: "Settings") {
+                                        // Settings action
                                     }
                                 }
-                                .background(Color.white)
-                                .cornerRadius(12)
-                                .shadow(color: .gray.opacity(0.1), radius: 5, x: 0, y: 2)
-                                .padding(.horizontal)
+                                .padding(.vertical)
+                                
+                                // Expenses section
+                                VStack(alignment: .leading, spacing: 16) {
+                                    Text("Recent Transactions")
+                                        .font(.title2)
+                                        .fontWeight(.bold)
+                                        .padding(.horizontal)
+                                    
+                                    VStack(spacing: 0) {
+                                        ForEach(expenses, id: \.merchantName) { expense in
+                                            ExpenseRow(
+                                                merchantName: expense.merchantName,
+                                                date: expense.date,
+                                                amount: expense.amount,
+                                                icon: expense.icon
+                                            )
+                                            .padding(.horizontal)
+                                            
+                                            if expense.merchantName != expenses.last?.merchantName {
+                                                Divider()
+                                                    .padding(.horizontal)
+                                            }
+                                        }
+                                    }
+                                    .background(Color.white)
+                                    .cornerRadius(12)
+                                    .shadow(color: .gray.opacity(0.1), radius: 5, x: 0, y: 2)
+                                    .padding(.horizontal)
+                                }
+                                
+                                Spacer(minLength: 100)
                             }
-                            
-                            // Add some bottom padding to ensure content doesn't get hidden behind the dots
-                            Spacer()
-                                .frame(height: 50)
+                            .frame(width: geometry.size.width)
                         }
+                        .offset(x: -CGFloat(currentPage) * geometry.size.width + dragOffset)
                     }
-                    .frame(width: geometry.size.width)
-                    .background(Color.gray.opacity(0.05))
-                }
-                .offset(x: -CGFloat(currentPage) * geometry.size.width + dragOffset)
-                .animation(.interactiveSpring(), value: dragOffset)
-                .animation(.interactiveSpring(), value: currentPage)
-                .gesture(
-                    DragGesture()
-                        .updating($dragOffset) { value, state, _ in
-                            state = value.translation.width
-                        }
-                        .onEnded { value in
-                            let threshold = geometry.size.width * 0.25
-                            if value.translation.width > threshold {
-                                currentPage = 0 // Swipe right to Add Card
-                            } else if value.translation.width < -threshold {
-                                currentPage = 1 // Swipe left to Main Card
-                            }
-                        }
-                )
-                
-                // Page Indicator Dots
-                VStack {
-                    Spacer()
-                    HStack {
-                        Spacer()
-                        PageIndicatorView(currentPage: currentPage)
-                        Spacer()
-                    }
-                    .padding(.bottom, geometry.safeAreaInsets.bottom + 70) // Account for tab bar height
                 }
             }
-            .ignoresSafeArea(.all, edges: .bottom)
+            .gesture(
+                DragGesture()
+                    .updating($dragOffset) { value, state, _ in
+                        state = value.translation.width
+                    }
+                    .onEnded { value in
+                        let threshold = geometry.size.width * 0.25
+                        if value.translation.width > threshold {
+                            currentPage = 0 // Swipe right to Add Card
+                        } else if value.translation.width < -threshold {
+                            currentPage = 1 // Swipe left to Main Card
+                        }
+                    }
+            )
+            .animation(.interactiveSpring(), value: dragOffset)
+            .animation(.interactiveSpring(), value: currentPage)
         }
     }
 } 
