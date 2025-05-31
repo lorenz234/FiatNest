@@ -30,7 +30,7 @@ It shows balances in your local currency, hides crypto complexity, and lets you 
   Download the app on your phone and sign up instantly – no key backup needed at the start (users are reminded later upon funding the wallet).
 
   Fund your wallet in two easy ways:
-  - Deposit any cryptocurrency to your Ethereum address – tokens are automatically swapped into your preferred stablecoin *(with support of 1inch Fusion)*.
+  - Deposit any cryptocurrency to your Ethereum address – tokens are automatically swapped into your preferred stablecoin.
   - Make a bank transfer to your wallet's unique IBAN *(powered by Monerium)* and receive stablecoins (EURe) directly in your wallet.
   
 ----------------------
