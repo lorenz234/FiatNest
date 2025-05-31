@@ -455,6 +455,7 @@ struct InvestView: View {
     
     var investmentOptions: [(platform: String, apy: Double, balance: Double)] {
         [
+            (platform: "StableKitty", apy: 15.53, balance: 0),
             (platform: "More.Markets", apy: 10.36, balance: investmentManager.flowBalance),
             (platform: "Increment", apy: 4.25, balance: 0)
         ]
@@ -515,6 +516,8 @@ struct InvestView: View {
                             case "More.Markets":
                                 return investmentManager.depositToIncrement(amount: amount)
                             case "Aave":
+                                return investmentManager.depositToAave(amount: amount)
+                            case "StableKitty":
                                 return investmentManager.depositToAave(amount: amount)
                             default:
                                 return Promise(error: InvestmentError.transactionFailed)
