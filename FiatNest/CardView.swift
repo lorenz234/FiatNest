@@ -458,9 +458,9 @@ struct DetailsView: View {
                             .truncationMode(.middle)
                             .padding(.vertical, 4)
                         
-                        Link(destination: URL(string: "https://gnosisscan.io/address/0x55809E0CDF350A5F7E6ed163D7C596170256dFa0")!) {
+                        Link(destination: URL(string: "https://gnosis.blockscout.com/address/0x55809E0CDF350A5F7E6ed163D7C596170256dFa0")!) {
                             HStack {
-                                Text("View on GnosisScan")
+                                Text("View on Blockscout")
                                     .foregroundColor(.blue)
                                 Image(systemName: "arrow.up.right.square")
                                     .foregroundColor(.blue)
