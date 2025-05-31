@@ -67,6 +67,8 @@ Presentation: https://docs.google.com/presentation/d/1_mGVKnewjlEkKTTC0bY5ZfZSRW
 
 - Multi-language and localization support: The app will adapt language and currency based on the user's location to ensure broad accessibility.
 
+- Implement gas abstracting (EIP4844) to avoid the need of funding the wallet in advance. 
+
 - Budgeting tools: Users will be able to track expenses and view monthly statements — all shown in fiat.
 
 - User onboarding guides: Walkthroughs and mini quizzes will help new users understand web3 concepts and features step by step.
@@ -74,6 +76,8 @@ Presentation: https://docs.google.com/presentation/d/1_mGVKnewjlEkKTTC0bY5ZfZSRW
 - Seed storage and backup options: The app will implement secure key management with optional backup solutions, depending on user preference.
 
 - Automatic payments and bill splitting: Users will be able to set up recurring payments or split bills with friends in stablecoins, shown in local currency.
+
+- Additional transaction screening, malicious activity warden (Gnosis safe timelock & veto bot) to comply with local regulation and support users.
 
 
 
