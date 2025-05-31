@@ -128,6 +128,7 @@ struct CryptoDetailsView: View {
 
 struct AccountsView: View {
     @Binding var balance: Double
+    @Binding var balanceUSD: Double
     @State private var showingAddMoneyOptions = false
     @State private var showingIBANDetails = false
     @State private var showingCryptoDetails = false
@@ -142,6 +143,10 @@ struct AccountsView: View {
                 .padding(.bottom, 4)
             
             Text("€\(balance, specifier: "%.2f")")
+                .font(.system(size: 48, weight: .medium))
+                .padding(.bottom, 8)
+            
+            Text("$\(balanceUSD, specifier: "%.2f")")
                 .font(.system(size: 48, weight: .medium))
                 .padding(.bottom, 40)
             

@@ -9,7 +9,8 @@ import SwiftUI
 
 struct ContentView: View {
     @State private var selectedTab = 0
-    @State private var savingsBalance = 1234.56
+    @State private var savingsBalance = 231.56
+    @State private var savingsBalance_USD = 5.01
     @State private var isAuthenticated = false
     
     init() {
@@ -26,7 +27,7 @@ struct ContentView: View {
         if isAuthenticated {
             TabView(selection: $selectedTab) {
                 // Accounts Tab
-                AccountsView(balance: $savingsBalance)
+                AccountsView(balance: $savingsBalance, balanceUSD: $savingsBalance_USD)
                     .tabItem {
                         Image(systemName: "banknote")
                         Text("Accounts")
@@ -42,11 +43,11 @@ struct ContentView: View {
                     }
                     .tag(1)
                 
-                // Send Tab
-                SendView()
+                // Swap Tab
+                SwapView()
                     .tabItem {
                         Image(systemName: "paperplane")
-                        Text("Send")
+                        Text("Swap")
                     }
                     .tag(2)
                 
