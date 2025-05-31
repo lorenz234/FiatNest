@@ -54,7 +54,6 @@ It shows balances in your local currency, hides crypto complexity, and lets you 
 
 
 ### Resources
-Demo Video:
 
 Presentation: https://docs.google.com/presentation/d/1_mGVKnewjlEkKTTC0bY5ZfZSRWk1gwN8aI4yaDKinDo/edit?usp=sharing
 
