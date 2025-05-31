@@ -43,7 +43,7 @@ struct CreditCardView: View {
                         Text("CARD HOLDER")
                             .font(.system(size: 10))
                             .foregroundColor(.white.opacity(0.7))
-                        Text("John Doe")
+                        Text("Lorenz Lehmann")
                             .font(.system(size: 16, weight: .medium))
                             .foregroundColor(.white)
                     }
@@ -367,16 +367,22 @@ struct AddMoneyToCardView: View {
 
 class CardViewModel: ObservableObject {
     @Published var transactions: [FormattedTransaction] = []
+    @Published var cardBalance: Double = 0.0
     
-    func loadTransactions() {
+    func loadData() {
         Task {
             do {
-                let fetchedTransactions = try await BlockscoutService.shared.fetchTransactions()
+                async let transactionsFetch = BlockscoutService.shared.fetchTransactions()
+                async let balanceFetch = BlockscoutService.shared.fetchCardBalance()
+                
+                let (transactions, balance) = try await (transactionsFetch, balanceFetch)
+                
                 DispatchQueue.main.async {
-                    self.transactions = fetchedTransactions
+                    self.transactions = transactions
+                    self.cardBalance = balance
                 }
             } catch {
-                print("Error fetching transactions: \(error)")
+                print("Error fetching data: \(error)")
             }
         }
     }
@@ -384,83 +390,82 @@ class CardViewModel: ObservableObject {
 
 struct CardView: View {
     @StateObject private var viewModel = CardViewModel()
-    @State private var currentPage = 1
+    @State private var currentPage = 0
     @GestureState private var dragOffset: CGFloat = 0
-    @State private var cardBalance: Double = 150.0
     @Binding var savingsBalance: Double
     @State private var showingAddMoney = false
     
     var body: some View {
         GeometryReader { geometry in
-            ZStack(alignment: .bottom) {
+            ZStack {
                 Color.gray.opacity(0.05).ignoresSafeArea()
                 
-                ScrollView {
-                    ZStack {
-                        HStack(spacing: 0) {
-                            AddCardView()
-                                .frame(width: geometry.size.width)
+                HStack(spacing: 0) {
+                    // AddCardView page
+                    AddCardView()
+                        .frame(width: geometry.size.width)
+                    
+                    // Card and Transactions page
+                    ScrollView {
+                        VStack(spacing: 20) {
+                            CreditCardView(balance: viewModel.cardBalance)
+                                .padding(.top)
                             
-                            VStack(spacing: 20) {
-                                CreditCardView(balance: cardBalance)
-                                    .padding(.top)
-                                
-                                // Action Buttons
-                                HStack(spacing: 30) {
-                                    CardActionButton(icon: "plus.circle.fill", title: "Add Money") {
-                                        showingAddMoney = true
-                                    }
-                                    
-                                    CardActionButton(icon: "snowflake", title: "Freeze") {
-                                        // Freeze card action
-                                    }
-                                    
-                                    CardActionButton(icon: "gearshape.fill", title: "Settings") {
-                                        // Settings action
-                                    }
+                            // Action Buttons
+                            HStack(spacing: 30) {
+                                CardActionButton(icon: "plus.circle.fill", title: "Add Money") {
+                                    showingAddMoney = true
                                 }
-                                .padding(.vertical)
                                 
-                                // Expenses section
-                                VStack(alignment: .leading, spacing: 16) {
-                                    Text("Recent Transactions")
-                                        .font(.title2)
-                                        .fontWeight(.bold)
+                                CardActionButton(icon: "snowflake", title: "Freeze") {
+                                    // Freeze card action
+                                }
+                                
+                                CardActionButton(icon: "gearshape.fill", title: "Settings") {
+                                    // Settings action
+                                }
+                            }
+                            .padding(.vertical)
+                            
+                            // Expenses section
+                            VStack(alignment: .leading, spacing: 16) {
+                                Text("Recent Transactions")
+                                    .font(.title2)
+                                    .fontWeight(.bold)
+                                    .padding(.horizontal)
+                                
+                                VStack(spacing: 0) {
+                                    ForEach(viewModel.transactions) { transaction in
+                                        ExpenseRow(
+                                            merchantName: transaction.merchantName,
+                                            date: transaction.date,
+                                            amount: transaction.amount,
+                                            icon: transaction.icon
+                                        )
                                         .padding(.horizontal)
-                                    
-                                    VStack(spacing: 0) {
-                                        ForEach(viewModel.transactions) { transaction in
-                                            ExpenseRow(
-                                                merchantName: transaction.merchantName,
-                                                date: transaction.date,
-                                                amount: transaction.amount,
-                                                icon: transaction.icon
-                                            )
-                                            .padding(.horizontal)
-                                            
-                                            if transaction.id != viewModel.transactions.last?.id {
-                                                Divider()
-                                                    .padding(.horizontal)
-                                            }
+                                        
+                                        if transaction.id != viewModel.transactions.last?.id {
+                                            Divider()
+                                                .padding(.horizontal)
                                         }
                                     }
-                                    .background(Color.white)
-                                    .cornerRadius(12)
-                                    .shadow(color: .gray.opacity(0.1), radius: 5, x: 0, y: 2)
-                                    .padding(.horizontal)
                                 }
-                                
-                                Spacer(minLength: 100)
+                                .background(Color.white)
+                                .cornerRadius(12)
+                                .shadow(color: .gray.opacity(0.1), radius: 5, x: 0, y: 2)
+                                .padding(.horizontal)
                             }
-                            .frame(width: geometry.size.width)
+                            
+                            Spacer(minLength: 100)
                         }
-                        .offset(x: -CGFloat(currentPage) * geometry.size.width + dragOffset)
                     }
+                    .frame(width: geometry.size.width)
                 }
+                .offset(x: -CGFloat(currentPage) * geometry.size.width + dragOffset)
             }
             .sheet(isPresented: $showingAddMoney) {
                 AddMoneyToCardView(
-                    cardBalance: $cardBalance,
+                    cardBalance: $viewModel.cardBalance,
                     savingsBalance: $savingsBalance
                 )
             }
@@ -472,16 +477,16 @@ struct CardView: View {
                     .onEnded { value in
                         let threshold = geometry.size.width * 0.25
                         if value.translation.width > threshold {
-                            currentPage = 0
+                            currentPage = max(0, currentPage - 1)
                         } else if value.translation.width < -threshold {
-                            currentPage = 1
+                            currentPage = min(1, currentPage + 1)
                         }
                     }
             )
             .animation(.interactiveSpring(), value: dragOffset)
             .animation(.interactiveSpring(), value: currentPage)
             .onAppear {
-                viewModel.loadTransactions()
+                viewModel.loadData()
             }
         }
     }

@@ -5,6 +5,19 @@ struct BlockscoutResponse: Codable {
     let items: [TokenTransfer]
 }
 
+// MARK: - Balance Response Models
+struct TokenBalanceResponse: Codable {
+    let token: TokenInfo
+    let value: String
+}
+
+struct TokenInfo: Codable {
+    let address: String
+    let decimals: String
+    let name: String
+    let symbol: String
+}
+
 struct TokenTransfer: Codable {
     let timestamp: String
     let total: TokenAmount
@@ -89,6 +102,29 @@ class BlockscoutService {
     private let baseURL = "https://gnosis.blockscout.com/api/v2"
     private let walletAddress = "0x55809E0CDF350A5F7E6ed163D7C596170256dFa0"
     private let tokenAddress = "0x420CA0f9B9b604cE0fd9C18EF134C705e5Fa3430"
+    
+    func fetchCardBalance() async throws -> Double {
+        let urlString = "\(baseURL)/addresses/\(walletAddress)/token-balances"
+        
+        guard let url = URL(string: urlString) else {
+            throw URLError(.badURL)
+        }
+        
+        var request = URLRequest(url: url)
+        request.setValue("application/json", forHTTPHeaderField: "accept")
+        
+        let (data, _) = try await URLSession.shared.data(for: request)
+        let balances = try JSONDecoder().decode([TokenBalanceResponse].self, from: data)
+        
+        // Find our specific token balance
+        guard let tokenBalance = balances.first(where: { $0.token.address.lowercased() == tokenAddress.lowercased() }) else {
+            throw NSError(domain: "BlockscoutService", code: 404, userInfo: [NSLocalizedDescriptionKey: "Token not found"])
+        }
+        
+        // Convert value to Double and divide by 10^18 (for 18 decimals)
+        let value = Double(tokenBalance.value) ?? 0
+        return value / pow(10, 18)
+    }
     
     func fetchTransactions() async throws -> [FormattedTransaction] {
         let urlString = "\(baseURL)/addresses/\(walletAddress)/token-transfers?type=ERC-20&filter=from&token=\(tokenAddress)"
