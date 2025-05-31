@@ -20,11 +20,10 @@ It shows balances in your local currency, hides crypto complexity, and lets you 
 - **DeFi Under the Hood**  
   Automatically swap crypto deposits into stablecoins, and earn yield directly in the app — no extra steps.
 
-<br> 
+
 
 ----------------------
 
-<br> 
 
 ### User Flow
 
@@ -34,11 +33,7 @@ It shows balances in your local currency, hides crypto complexity, and lets you 
   - Deposit any cryptocurrency to your Ethereum address – tokens are automatically swapped into your preferred stablecoin *(with support of 1inch Fusion)*.
   - Make a bank transfer to your wallet's unique IBAN *(powered by Monerium)* and receive stablecoins (EURe) directly in your wallet.
   
-<br> 
-
 ----------------------
-
-<br> 
 
 ### Core functionalities
 
@@ -55,22 +50,15 @@ It shows balances in your local currency, hides crypto complexity, and lets you 
 - **Invest:**  
   Make your money work for you! Allocate stablecoins to yield-generating strategies *(powered by Flow money markets)* – all within the app, no external platforms needed.
 
-<br> 
-
 ----------------------
 
-<br> 
 
 ### Resources
 Demo Video:
 
 Presentation: https://docs.google.com/presentation/d/1_mGVKnewjlEkKTTC0bY5ZfZSRWk1gwN8aI4yaDKinDo/edit?usp=sharing
 
-<br> 
-
 ----------------------
-
-<br> 
 
 ### Roadmap
 
