@@ -9,7 +9,7 @@ struct CreditCardView: View {
             // Card background
             RoundedRectangle(cornerRadius: 20)
                 .fill(LinearGradient(
-                    gradient: Gradient(colors: [Color.blue, Color.blue.opacity(0.8)]),
+                    gradient: Gradient(colors: [Color.customDarkGreen, Color.customGreen]),
                     startPoint: .topLeading,
                     endPoint: .bottomTrailing
                 ))
@@ -82,7 +82,7 @@ struct CardActionButton: View {
                     .shadow(color: .gray.opacity(0.2), radius: 4, x: 0, y: 2)
                     .overlay(
                         Image(systemName: icon)
-                            .foregroundColor(.blue)
+                            .foregroundColor(.customDarkGreen)
                             .font(.system(size: 20))
                     )
                 Text(title)
@@ -183,9 +183,11 @@ struct CardSelectionView: View {
                     Button("Cancel") {
                         dismiss()
                     }
+                    .foregroundColor(.customDarkGreen)
                 }
             }
         }
+        .tint(.customDarkGreen)
     }
 }
 
@@ -195,17 +197,17 @@ struct AddCardView: View {
     var body: some View {
         VStack(spacing: 20) {
             Circle()
-                .fill(Color.blue.opacity(0.1))
+                .fill(Color.customGreen.opacity(0.1))
                 .frame(width: 80, height: 80)
                 .overlay(
                     Image(systemName: "plus.circle.fill")
-                        .foregroundColor(.blue)
-                        .font(.system(size: 40))
+                        .font(.system(size: 32))
+                        .foregroundColor(.customDarkGreen)
                 )
             
             Text("Add New Card")
                 .font(.title2)
-                .fontWeight(.medium)
+                .foregroundColor(.customDarkGreen)
             
             Text("Connect any stablecoin card to your account")
                 .font(.body)
@@ -218,11 +220,15 @@ struct AddCardView: View {
             }) {
                 Text("Add Card")
                     .font(.headline)
-                    .foregroundColor(.white)
+                    .foregroundColor(.black)
                     .frame(maxWidth: .infinity)
                     .padding()
-                    .background(Color.blue)
+                    .background(Color.white)
                     .cornerRadius(12)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 12)
+                            .stroke(Color.customDarkGreen, lineWidth: 2)
+                    )
             }
             .padding(.horizontal)
             .padding(.top, 20)
@@ -246,11 +252,11 @@ struct ExpenseRow: View {
         HStack {
             // Icon
             Circle()
-                .fill(Color.blue.opacity(0.1))
+                .fill(Color.customOrange.opacity(0.1))
                 .frame(width: 50, height: 50)
                 .overlay(
                     Image(systemName: icon)
-                        .foregroundColor(.blue)
+                        .foregroundColor(.customOrange)
                         .font(.system(size: 20))
                 )
             
@@ -340,7 +346,7 @@ struct AddMoneyToCardView: View {
                         .foregroundColor(.white)
                         .frame(maxWidth: .infinity)
                         .padding()
-                        .background(Color.blue)
+                        .background(Color.customOrange.opacity(0.5))
                         .cornerRadius(12)
                 }
                 .padding()
@@ -418,7 +424,7 @@ struct DetailsView: View {
                                 x: .value("Date", point.date),
                                 y: .value("Balance", point.balance)
                             )
-                            .foregroundStyle(Color.blue)
+                            .foregroundStyle(Color.customOrange)
                             
                             AreaMark(
                                 x: .value("Date", point.date),
@@ -426,7 +432,7 @@ struct DetailsView: View {
                             )
                             .foregroundStyle(
                                 LinearGradient(
-                                    colors: [.blue.opacity(0.3), .blue.opacity(0.1)],
+                                    colors: [.customOrange.opacity(0.3), .customOrange.opacity(0.1)],
                                     startPoint: .top,
                                     endPoint: .bottom
                                 )

@@ -19,6 +19,12 @@ struct ContentView: View {
         tabBarAppearance.configureWithOpaqueBackground()
         tabBarAppearance.backgroundColor = .systemGray6
         
+        // Update tab bar colors
+        tabBarAppearance.stackedLayoutAppearance.normal.iconColor = .gray
+        tabBarAppearance.stackedLayoutAppearance.normal.titleTextAttributes = [.foregroundColor: UIColor.gray]
+        tabBarAppearance.stackedLayoutAppearance.selected.iconColor = UIColor(Color.customDarkGreen)
+        tabBarAppearance.stackedLayoutAppearance.selected.titleTextAttributes = [.foregroundColor: UIColor(Color.customDarkGreen)]
+        
         UITabBar.appearance().standardAppearance = tabBarAppearance
         UITabBar.appearance().scrollEdgeAppearance = tabBarAppearance
     }
@@ -59,7 +65,7 @@ struct ContentView: View {
                     }
                     .tag(3)
             }
-            .tint(.blue)
+            .tint(.customDarkGreen)
         } else {
             LoginView(onLoginTapped: {
                 isAuthenticated = true

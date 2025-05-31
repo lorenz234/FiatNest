@@ -44,7 +44,7 @@ struct DepositView: View {
                     HStack(alignment: .bottom, spacing: 4) {
                         Text("\(String(format: "%.2f", apy))%")
                             .font(.system(size: 28, weight: .bold))
-                            .foregroundColor(.blue)
+                            .foregroundColor(.customOrange)
                         Text("APY")
                             .font(.subheadline)
                             .foregroundColor(.gray)
@@ -53,7 +53,7 @@ struct DepositView: View {
                 }
                 .padding()
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .background(Color.blue.opacity(0.1))
+                .background(Color.customOrange.opacity(0.1))
                 .cornerRadius(12)
                 
                 Spacer()
@@ -79,16 +79,20 @@ struct DepositView: View {
                     HStack {
                         if isLoading {
                             ProgressView()
-                                .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                                .progressViewStyle(CircularProgressViewStyle(tint: .customDarkGreen))
                                 .padding(.trailing, 8)
                         }
                         Text(isLoading ? "Confirming..." : "Deposit Now")
                     }
                     .frame(maxWidth: .infinity)
                     .padding()
-                    .background(Color.blue)
-                    .foregroundColor(.white)
+                    .background(Color.white)
+                    .foregroundColor(.black)
                     .cornerRadius(12)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 12)
+                            .stroke(Color.customDarkGreen, lineWidth: 2)
+                    )
                 }
                 .disabled(isLoading || amount.isEmpty || Double(amount) == nil)
                 .opacity((amount.isEmpty || Double(amount) == nil) ? 0.6 : 1.0)
@@ -160,6 +164,7 @@ struct InvestmentCard: View {
                         }
                         Text("$\(String(format: "%.2f", balance))")
                             .font(.system(size: 20, weight: .bold))
+                            .foregroundColor(.customDarkGreen)
                     }
                     
                     Spacer()
@@ -170,7 +175,7 @@ struct InvestmentCard: View {
                             .foregroundColor(.gray)
                         Text("\(String(format: "%.2f", apy))%")
                             .font(.system(size: 20, weight: .bold))
-                            .foregroundColor(.blue)
+                            .foregroundColor(.customOrange)
                     }
                 }
                 
@@ -187,11 +192,15 @@ struct InvestmentCard: View {
                         Text("Start Earning")
                             .font(.system(size: 16, design: .rounded))
                             .fontWeight(.medium)
-                            .foregroundColor(.white)
+                            .foregroundColor(.black)
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 14)
-                            .background(Color.blue)
+                            .background(Color.white)
                             .cornerRadius(12)
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 12)
+                                    .stroke(Color.customDarkGreen, lineWidth: 2)
+                            )
                     }
                     
                     Button(action: {
@@ -200,10 +209,10 @@ struct InvestmentCard: View {
                         Text("Withdraw")
                             .font(.system(size: 16, design: .rounded))
                             .fontWeight(.medium)
-                            .foregroundColor(.blue)
+                            .foregroundColor(.customDarkGreen)
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 14)
-                            .background(Color.blue.opacity(0.1))
+                            .background(Color.customGreen.opacity(0.2))
                             .cornerRadius(12)
                     }
                 }
@@ -242,11 +251,11 @@ struct InvestmentDetailsView: View {
                             .font(.headline)
                         Text("\(String(format: "%.2f", apy))%")
                             .font(.system(size: 36, weight: .bold))
-                            .foregroundColor(.blue)
+                            .foregroundColor(.customOrange)
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding()
-                    .background(Color.blue.opacity(0.1))
+                    .background(Color.customGreen.opacity(0.1))
                     .cornerRadius(12)
                     
                     // Platform Info
@@ -281,9 +290,11 @@ struct InvestmentDetailsView: View {
                     Button("Done") {
                         dismiss()
                     }
+                    .foregroundColor(.customDarkGreen)
                 }
             }
         }
+        .tint(.customDarkGreen)
     }
 }
 
@@ -298,6 +309,7 @@ struct StatRow: View {
             Spacer()
             Text(value)
                 .fontWeight(.medium)
+                .foregroundColor(.customDarkGreen)
         }
     }
 }
