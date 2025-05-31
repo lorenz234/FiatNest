@@ -40,25 +40,29 @@ struct LoginView: View {
             Button(action: onLoginTapped) {
                 Text("Login")
                     .font(.headline)
-                    .foregroundColor(.white)
-                    .frame(maxWidth: .infinity)
-                    .padding()
-                    .background(Color.blue)
-                    .cornerRadius(10)
-            }
-            .padding(.horizontal)
-            
-            Button(action: createAccount) {
-                Text("Create Account")
-                    .font(.headline)
-                    .foregroundColor(.blue)
+                    .foregroundColor(.black)
                     .frame(maxWidth: .infinity)
                     .padding()
                     .background(Color.white)
                     .cornerRadius(10)
                     .overlay(
                         RoundedRectangle(cornerRadius: 10)
-                            .stroke(Color.blue, lineWidth: 2)
+                            .stroke(Color.customDarkGreen, lineWidth: 2)
+                    )
+            }
+            .padding(.horizontal)
+            
+            Button(action: createAccount) {
+                Text("Create Account")
+                    .font(.headline)
+                    .foregroundColor(.black)
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                    .background(Color.white)
+                    .cornerRadius(10)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 10)
+                            .stroke(Color.customDarkGreen, lineWidth: 2)
                     )
             }
             .padding(.horizontal)

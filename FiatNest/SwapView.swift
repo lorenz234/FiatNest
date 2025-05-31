@@ -28,6 +28,7 @@ struct SwapView: View {
                             }
                         }
                         .pickerStyle(.menu)
+                        .tint(.customDarkGreen)
                     }
                     .padding()
                     .background(Color.gray.opacity(0.1))
@@ -42,9 +43,9 @@ struct SwapView: View {
                 }) {
                     Image(systemName: "arrow.up.arrow.down")
                         .font(.title2)
-                        .foregroundColor(.blue)
+                        .foregroundColor(.customDarkGreen)
                         .padding(12)
-                        .background(Color.blue.opacity(0.1))
+                        .background(Color.customGreen.opacity(0.2))
                         .clipShape(Circle())
                 }
                 
@@ -68,6 +69,7 @@ struct SwapView: View {
                             }
                         }
                         .pickerStyle(.menu)
+                        .tint(.customDarkGreen)
                     }
                     .padding()
                     .background(Color.gray.opacity(0.1))
@@ -88,22 +90,27 @@ struct SwapView: View {
                     HStack {
                         if isLoading {
                             ProgressView()
-                                .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                                .progressViewStyle(CircularProgressViewStyle(tint: .customDarkGreen))
                                 .padding(.trailing, 8)
                         }
                         Text(isLoading ? "Converting..." : "Convert Now")
                     }
                     .frame(maxWidth: .infinity)
                     .padding()
-                    .background(fromAmount.isEmpty ? Color.blue.opacity(0.5) : Color.blue)
-                    .foregroundColor(.white)
+                    .background(Color.white)
+                    .foregroundColor(.black)
                     .cornerRadius(12)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 12)
+                            .stroke(fromAmount.isEmpty ? Color.customDarkGreen.opacity(0.5) : Color.customDarkGreen, lineWidth: 2)
+                    )
                 }
                 .disabled(fromAmount.isEmpty || isLoading)
             }
             .padding()
             .navigationTitle("Swap")
         }
+        .tint(.customDarkGreen) // This affects the navigation bar
     }
     
     private func calculateToAmount() -> String {

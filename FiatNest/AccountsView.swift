@@ -29,6 +29,7 @@ struct IBANDetailsView: View {
                     Button("Done") {
                         dismiss()
                     }
+                    .foregroundColor(.customDarkGreen)
                 }
             }
         }
@@ -46,6 +47,7 @@ struct DetailRow: View {
                 .foregroundColor(.gray)
             Text(value)
                 .font(.system(.body, design: .monospaced))
+                .foregroundColor(.customDarkGreen)
                 .textSelection(.enabled)
         }
     }
@@ -60,11 +62,12 @@ struct RoundButton: View {
         Button(action: action) {
             VStack {
                 Circle()
-                    .fill(Color.blue.opacity(0.1))
+                    .fill(Color.white)
                     .frame(width: 60, height: 60)
+                    .shadow(color: .gray.opacity(0.1), radius: 5, x: 0, y: 2)
                     .overlay(
                         Image(systemName: imageName)
-                            .foregroundColor(.blue)
+                            .foregroundColor(.customDarkGreen)
                             .font(.system(size: 24))
                     )
                 Text(title)
@@ -120,6 +123,7 @@ struct CryptoDetailsView: View {
                     Button("Done") {
                         dismiss()
                     }
+                    .foregroundColor(.customDarkGreen)
                 }
             }
         }
@@ -134,42 +138,49 @@ struct AccountsView: View {
     @State private var showingCryptoDetails = false
     
     var body: some View {
-        VStack {
-            Spacer()
+        ZStack {
+            Color.gray.opacity(0.05)
+                .ignoresSafeArea()
             
-            Text("savings account")
-                .font(.subheadline)
-                .foregroundColor(.gray)
-                .padding(.bottom, 4)
-            
-            Text("€\(balance, specifier: "%.2f")")
-                .font(.system(size: 48, weight: .medium))
-                .padding(.bottom, 8)
-            
-            Text("$\(balanceUSD, specifier: "%.2f")")
-                .font(.system(size: 48, weight: .medium))
-                .padding(.bottom, 40)
-            
-            HStack(spacing: 25) {
-                RoundButton(imageName: "plus.circle.fill", title: "Add Money") {
-                    showingAddMoneyOptions = true
-                }
+            VStack {
+                Spacer()
                 
-                RoundButton(imageName: "arrow.left.arrow.right.circle.fill", title: "Move") {
-                    // Move action
-                }
+                Text("savings account")
+                    .font(.subheadline)
+                    .foregroundColor(.gray)
+                    .padding(.bottom, 4)
                 
-                RoundButton(imageName: "list.bullet.circle.fill", title: "Details") {
-                    // Details action
-                }
+                Text("€\(balance, specifier: "%.2f")")
+                    .font(.system(size: 48, weight: .medium))
+                    .foregroundColor(.black)
+                    .padding(.bottom, 8)
                 
-                RoundButton(imageName: "ellipsis.circle.fill", title: "More") {
-                    // More action
+                Text("$\(balanceUSD, specifier: "%.2f")")
+                    .font(.system(size: 48, weight: .medium))
+                    .foregroundColor(.black)
+                    .padding(.bottom, 40)
+                
+                HStack(spacing: 25) {
+                    RoundButton(imageName: "plus.circle.fill", title: "Add Money") {
+                        showingAddMoneyOptions = true
+                    }
+                    
+                    RoundButton(imageName: "arrow.left.arrow.right.circle.fill", title: "Move") {
+                        // Move action
+                    }
+                    
+                    RoundButton(imageName: "list.bullet.circle.fill", title: "Details") {
+                        // Details action
+                    }
+                    
+                    RoundButton(imageName: "ellipsis.circle.fill", title: "More") {
+                        // More action
+                    }
                 }
+                .padding(.horizontal)
+                
+                Spacer()
             }
-            .padding(.horizontal)
-            
-            Spacer()
         }
         .confirmationDialog("Add Money", isPresented: $showingAddMoneyOptions) {
             Button("IBAN") {
@@ -186,5 +197,6 @@ struct AccountsView: View {
         .sheet(isPresented: $showingCryptoDetails) {
             CryptoDetailsView()
         }
+        .tint(.customDarkGreen)
     }
 } 
