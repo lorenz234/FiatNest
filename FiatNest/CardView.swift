@@ -1,4 +1,5 @@
 import SwiftUI
+import Charts
 
 struct CreditCardView: View {
     let balance: Double
@@ -365,6 +366,124 @@ struct AddMoneyToCardView: View {
     }
 }
 
+struct BalanceHistoryPoint: Identifiable {
+    let id = UUID()
+    let date: Date
+    let balance: Double
+}
+
+struct DetailsView: View {
+    @Environment(\.dismiss) private var dismiss
+    let cardBalance: Double
+    
+    // Dummy data for the chart
+    private let balanceHistory: [BalanceHistoryPoint] = {
+        let calendar = Calendar.current
+        let today = Date()
+        var points: [BalanceHistoryPoint] = []
+        
+        for day in 0..<30 {
+            if let date = calendar.date(byAdding: .day, value: -day, to: today) {
+                // Create some random variation around the current balance
+                let randomVariation = Double.random(in: -50...50)
+                points.append(BalanceHistoryPoint(date: date, balance: 2500 + randomVariation))
+            }
+        }
+        return points.reversed()
+    }()
+    
+    var body: some View {
+        NavigationView {
+            ScrollView {
+                VStack(spacing: 24) {
+                    // Current Balance Section
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Current Balance")
+                            .font(.headline)
+                        Text("€\(cardBalance, specifier: "%.2f")")
+                            .font(.system(size: 32, weight: .bold))
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding()
+                    .background(Color.blue.opacity(0.1))
+                    .cornerRadius(12)
+                    
+                    // Balance History Chart
+                    VStack(alignment: .leading, spacing: 16) {
+                        Text("Balance History")
+                            .font(.headline)
+                        
+                        Chart(balanceHistory) { point in
+                            LineMark(
+                                x: .value("Date", point.date),
+                                y: .value("Balance", point.balance)
+                            )
+                            .foregroundStyle(Color.blue)
+                            
+                            AreaMark(
+                                x: .value("Date", point.date),
+                                y: .value("Balance", point.balance)
+                            )
+                            .foregroundStyle(
+                                LinearGradient(
+                                    colors: [.blue.opacity(0.3), .blue.opacity(0.1)],
+                                    startPoint: .top,
+                                    endPoint: .bottom
+                                )
+                            )
+                        }
+                        .frame(height: 200)
+                        .chartYScale(domain: 2000...3000)
+                    }
+                    .padding()
+                    .background(Color.white)
+                    .cornerRadius(12)
+                    .shadow(color: .gray.opacity(0.1), radius: 5, x: 0, y: 2)
+                    
+                    // Blockchain Explorer Link
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("View on Blockscout")
+                            .font(.headline)
+                        
+                        Text("0x55809E0CDF350A5F7E6ed163D7C596170256dFa0")
+                            .font(.system(.subheadline, design: .monospaced))
+                            .foregroundColor(.gray)
+                            .lineLimit(1)
+                            .truncationMode(.middle)
+                            .padding(.vertical, 4)
+                        
+                        Link(destination: URL(string: "https://gnosisscan.io/address/0x55809E0CDF350A5F7E6ed163D7C596170256dFa0")!) {
+                            HStack {
+                                Text("View on GnosisScan")
+                                    .foregroundColor(.blue)
+                                Image(systemName: "arrow.up.right.square")
+                                    .foregroundColor(.blue)
+                            }
+                            .padding()
+                            .background(Color.blue.opacity(0.1))
+                            .cornerRadius(8)
+                        }
+                    }
+                    .padding()
+                    .background(Color.white)
+                    .cornerRadius(12)
+                    .shadow(color: .gray.opacity(0.1), radius: 5, x: 0, y: 2)
+                }
+                .padding()
+            }
+            .navigationTitle("Card Details")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .navigationBarTrailing) {
+                    Button("Done") {
+                        dismiss()
+                    }
+                }
+            }
+        }
+    }
+}
+
 class CardViewModel: ObservableObject {
     @Published var transactions: [FormattedTransaction] = []
     @Published var cardBalance: Double = 0.0
@@ -394,6 +513,7 @@ struct CardView: View {
     @GestureState private var dragOffset: CGFloat = 0
     @Binding var savingsBalance: Double
     @State private var showingAddMoney = false
+    @State private var showingDetails = false
     
     var body: some View {
         GeometryReader { geometry in
@@ -423,6 +543,10 @@ struct CardView: View {
                                 
                                 CardActionButton(icon: "gearshape.fill", title: "Settings") {
                                     // Settings action
+                                }
+
+                                CardActionButton(icon: "list.bullet.rectangle.fill", title: "Details") {
+                                    showingDetails = true
                                 }
                             }
                             .padding(.vertical)
@@ -468,6 +592,9 @@ struct CardView: View {
                     cardBalance: $viewModel.cardBalance,
                     savingsBalance: $savingsBalance
                 )
+            }
+            .sheet(isPresented: $showingDetails) {
+                DetailsView(cardBalance: viewModel.cardBalance)
             }
             .gesture(
                 DragGesture()
