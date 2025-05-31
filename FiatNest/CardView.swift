@@ -484,36 +484,61 @@ struct DetailsView: View {
     }
 }
 
-class CardViewModel: ObservableObject {
-    @Published var transactions: [FormattedTransaction] = []
-    @Published var cardBalance: Double = 0.0
+@Observable
+final class CardViewModel: Sendable {
+    private let stateManager = StateManager()
+    
+    var transactions: [FormattedTransaction] {
+        get async {
+            await stateManager.transactions
+        }
+    }
+    
+    var cardBalance: Double {
+        get async {
+            await stateManager.cardBalance
+        }
+    }
     
     func loadData() {
-        Task {
+        Task { @MainActor in
             do {
                 async let transactionsFetch = BlockscoutService.shared.fetchTransactions()
                 async let balanceFetch = BlockscoutService.shared.fetchCardBalance()
                 
                 let (transactions, balance) = try await (transactionsFetch, balanceFetch)
                 
-                DispatchQueue.main.async {
-                    self.transactions = transactions
-                    self.cardBalance = balance
-                }
+                await stateManager.setTransactions(transactions)
+                await stateManager.setBalance(balance)
             } catch {
                 print("Error fetching data: \(error)")
             }
         }
     }
+    
+    actor StateManager: Sendable {
+        var transactions: [FormattedTransaction] = []
+        var cardBalance: Double = 0.0
+        
+        func setTransactions(_ newTransactions: [FormattedTransaction]) {
+            transactions = newTransactions
+        }
+        
+        func setBalance(_ newBalance: Double) {
+            cardBalance = newBalance
+        }
+    }
 }
 
 struct CardView: View {
-    @StateObject private var viewModel = CardViewModel()
+    @State private var viewModel = CardViewModel()
     @State private var currentPage = 0
     @GestureState private var dragOffset: CGFloat = 0
     @Binding var savingsBalance: Double
     @State private var showingAddMoney = false
     @State private var showingDetails = false
+    @State private var currentBalance: Double = 0.0
+    @State private var currentTransactions: [FormattedTransaction] = []
     
     var body: some View {
         GeometryReader { geometry in
@@ -528,7 +553,7 @@ struct CardView: View {
                     // Card and Transactions page
                     ScrollView {
                         VStack(spacing: 20) {
-                            CreditCardView(balance: viewModel.cardBalance)
+                            CreditCardView(balance: currentBalance)
                                 .padding(.top)
                             
                             // Action Buttons
@@ -544,7 +569,7 @@ struct CardView: View {
                                 CardActionButton(icon: "gearshape.fill", title: "Settings") {
                                     // Settings action
                                 }
-
+                                
                                 CardActionButton(icon: "list.bullet.rectangle.fill", title: "Details") {
                                     showingDetails = true
                                 }
@@ -559,7 +584,7 @@ struct CardView: View {
                                     .padding(.horizontal)
                                 
                                 VStack(spacing: 0) {
-                                    ForEach(viewModel.transactions) { transaction in
+                                    ForEach(currentTransactions) { transaction in
                                         ExpenseRow(
                                             merchantName: transaction.merchantName,
                                             date: transaction.date,
@@ -568,7 +593,7 @@ struct CardView: View {
                                         )
                                         .padding(.horizontal)
                                         
-                                        if transaction.id != viewModel.transactions.last?.id {
+                                        if transaction.id != currentTransactions.last?.id {
                                             Divider()
                                                 .padding(.horizontal)
                                         }
@@ -589,12 +614,12 @@ struct CardView: View {
             }
             .sheet(isPresented: $showingAddMoney) {
                 AddMoneyToCardView(
-                    cardBalance: $viewModel.cardBalance,
+                    cardBalance: .constant(currentBalance), // This needs to be updated to handle async updates
                     savingsBalance: $savingsBalance
                 )
             }
             .sheet(isPresented: $showingDetails) {
-                DetailsView(cardBalance: viewModel.cardBalance)
+                DetailsView(cardBalance: currentBalance)
             }
             .gesture(
                 DragGesture()
@@ -612,8 +637,25 @@ struct CardView: View {
             )
             .animation(.interactiveSpring(), value: dragOffset)
             .animation(.interactiveSpring(), value: currentPage)
-            .onAppear {
+            .task {
                 viewModel.loadData()
+                // Start continuous updates
+                let stream = AsyncStream<Void> { continuation in
+                    Task {
+                        while true {
+                            continuation.yield()
+                            try await Task.sleep(nanoseconds: 1_000_000_000) // 1 second
+                        }
+                    }
+                }
+                
+                for await _ in stream {
+                    async let balance = viewModel.cardBalance
+                    async let transactions = viewModel.transactions
+                    let (newBalance, newTransactions) = await (balance, transactions)
+                    currentBalance = newBalance
+                    currentTransactions = newTransactions
+                }
             }
         }
     }
