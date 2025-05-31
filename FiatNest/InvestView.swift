@@ -379,7 +379,18 @@ class InvestmentManager: ObservableObject {
                 print("✅ Successfully deposited to Increment Finance")
                 // Refresh balance after successful deposit
                 Task { @MainActor in
+                    try? await Task.sleep(nanoseconds: 10_000_000_000) // 15 second delay
                     await self.fetchFlowBalance()
+                    print("💰 Flow balance after deposit: \(self.flowBalance)")
+                    try? await Task.sleep(nanoseconds: 5_000_000_000) // 5 second delay
+                    await self.fetchFlowBalance()
+                    print("💰 Flow balance after deposit: \(self.flowBalance)")
+                    try? await Task.sleep(nanoseconds: 5_000_000_000) // 5 second delay
+                    await self.fetchFlowBalance()
+                    print("💰 Flow balance after deposit: \(self.flowBalance)")
+                    try? await Task.sleep(nanoseconds: 5_000_000_000) // 5 second delay
+                    await self.fetchFlowBalance()
+                    print("💰 Flow balance after deposit: \(self.flowBalance)")
                 }
                 seal.fulfill(())
             }.catch { error in
