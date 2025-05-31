@@ -103,6 +103,11 @@ class BlockscoutService {
     private let walletAddress = "0x55809E0CDF350A5F7E6ed163D7C596170256dFa0"
     private let tokenAddress = "0x420CA0f9B9b604cE0fd9C18EF134C705e5Fa3430"
     
+    // Flow USDC Configuration
+    private let flowBaseURL = "https://evm.flowscan.io/api/v2"
+    private let flowWalletAddress = "0x732D31D49467c08F41fD0727537995ea45dD4Ba7"
+    private let flowUSDCAddress = "0x49c6b2799aF2Db7404b930F24471dD961CFE18b7"
+    
     func fetchCardBalance() async throws -> Double {
         let urlString = "\(baseURL)/addresses/\(walletAddress)/token-balances"
         
@@ -172,5 +177,28 @@ class BlockscoutService {
                 icon: icon
             )
         }
+    }
+    
+    func fetchFlowUSDCBalance() async throws -> Double {
+        let urlString = "\(flowBaseURL)/addresses/\(flowWalletAddress)/token-balances"
+        
+        guard let url = URL(string: urlString) else {
+            throw URLError(.badURL)
+        }
+        
+        var request = URLRequest(url: url)
+        request.setValue("application/json", forHTTPHeaderField: "accept")
+        
+        let (data, _) = try await URLSession.shared.data(for: request)
+        let balances = try JSONDecoder().decode([TokenBalanceResponse].self, from: data)
+        
+        // Find Flow USDC balance
+        guard let tokenBalance = balances.first(where: { $0.token.address.lowercased() == flowUSDCAddress.lowercased() }) else {
+            throw NSError(domain: "BlockscoutService", code: 404, userInfo: [NSLocalizedDescriptionKey: "Flow USDC token not found"])
+        }
+        
+        // Convert value to Double and divide by 10^6 (USDC has 6 decimals)
+        let value = Double(tokenBalance.value) ?? 0
+        return value / pow(10, 6)
     }
 }
